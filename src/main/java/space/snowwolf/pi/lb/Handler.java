@@ -3,7 +3,7 @@ package space.snowwolf.pi.lb;
 import java.io.IOException;
 import java.net.Socket;
 
-import space.snowwolf.pi.utils.HttpPacket;
+import space.snowwolf.pi.bean.HttpPacket;
 import space.snowwolf.pi.utils.IOUtils;
 
 public class Handler extends Thread {

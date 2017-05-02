@@ -1,6 +1,7 @@
 package space.snowwolf.pi.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,7 +10,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import space.snowwolf.pi.bean.HttpPacket;
+
 public class IOUtils {
+	
+	private static final Logger logger = LoggerFactory.getLogger(IOUtils.class);
+	
+	public static void close(Closeable ... args) {
+		for(Closeable obj : args) {
+			if(obj != null) {
+				try {
+					obj.close();
+				} catch (IOException e) {
+					logger.error("Failed to close resource", e);
+				}
+			}
+		}
+	}
 
 	public static HttpPacket read(InputStream in, boolean print) throws NumberFormatException, IOException {
 		if(in == null) {

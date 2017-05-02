@@ -1,4 +1,4 @@
-package space.snowwolf.pi.utils;
+package space.snowwolf.pi.bean;
 
 import java.util.Map;
 

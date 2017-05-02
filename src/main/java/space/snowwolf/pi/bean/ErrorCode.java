@@ -1,4 +1,4 @@
-package space.snowwolf.pi.common;
+package space.snowwolf.pi.bean;
 
 public enum ErrorCode {
 	

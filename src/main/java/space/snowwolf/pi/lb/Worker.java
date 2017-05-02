@@ -3,25 +3,54 @@ package space.snowwolf.pi.lb;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Map;
 
-import space.snowwolf.pi.utils.HttpPacket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import space.snowwolf.pi.bean.Command;
+import space.snowwolf.pi.bean.HttpPacket;
+import space.snowwolf.pi.bean.TomcatStatus;
+import space.snowwolf.pi.common.CommandExecution;
+import space.snowwolf.pi.common.CommandExecutor;
+import space.snowwolf.pi.common.SocketHandler;
 import space.snowwolf.pi.utils.IOUtils;
 
-public class Worker {
+public class Worker extends CommandExecutor {
+
+	private static final Logger logger = LoggerFactory.getLogger(Worker.class);
 
 	private String name;
 	private String ip;
 	private int port;
-	private int ratio;
-	private boolean main;
-	private Socket socket;
 
-	public Worker(String name, String ip, int port, boolean main, int ratio) {
-		this.name = name;
-		this.ip = ip;
-		this.port = port;
-		this.main = main;
-		this.ratio = ratio;
+	private Socket socket;
+	private TomcatStatus status;
+	private int cpu;
+	private int memory;
+
+	public Worker(Socket monitor) throws IOException {
+		this.handler = new SocketHandler(monitor);
+		this.ip = monitor.getInetAddress().getHostName();
+	}
+
+	@CommandExecution
+	public void register(Map<String, String> params) {
+		this.name = params.get("name");
+		this.port = Integer.parseInt(params.get("port"));
+		Command cmd = new Command("startTomcat");
+		try {
+			handler.send(cmd);
+		} catch (IOException e) {
+			logger.error("Failed to send command [" + cmd + "]", e);
+		}
+	}
+
+	@CommandExecution
+	public void heartBeat(Map<String, String> params) {
+		this.status = TomcatStatus.valueOf(params.get("status"));
+		this.cpu = Integer.parseInt(params.get("cpu"));
+		this.memory = Integer.parseInt(params.get("mem"));
 	}
 
 	public HttpPacket handle(HttpPacket request) {
@@ -70,20 +99,37 @@ public class Worker {
 		this.port = port;
 	}
 
-	public int getRatio() {
-		return ratio;
+	public TomcatStatus getTomcatStatus() {
+		return status;
 	}
 
-	public void setRatio(int ratio) {
-		this.ratio = ratio;
+	@Override
+	protected void init() {
+
 	}
 
-	public boolean isMain() {
-		return main;
+	public TomcatStatus getStatus() {
+		return status;
 	}
 
-	public void setMain(boolean main) {
-		this.main = main;
+	public void setStatus(TomcatStatus status) {
+		this.status = status;
+	}
+
+	public int getCpu() {
+		return cpu;
+	}
+
+	public void setCpu(int cpu) {
+		this.cpu = cpu;
+	}
+
+	public int getMemory() {
+		return memory;
+	}
+
+	public void setMemory(int memory) {
+		this.memory = memory;
 	}
 
 }
