@@ -8,10 +8,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class SocketHandler {
 		reader = new BufferedReader(new InputStreamReader(in));
 		writer = new BufferedWriter(new OutputStreamWriter(out));
 		
-		queue = new ArrayList<>();
+		queue = new Vector<>();
 		Main.getThreadPool().submit(() -> {
 			while(socket != null && !socket.isClosed() && socket.isConnected()) {
 				logger.debug((socket == null) + " " + socket.isClosed() + " " + socket.isConnected());

@@ -20,6 +20,8 @@ public class Worker extends CommandExecutor {
 
 	private static final Logger logger = LoggerFactory.getLogger(Worker.class);
 
+	private WorkerManager manager;
+	
 	private String name;
 	private String ip;
 	private int port;
@@ -29,7 +31,8 @@ public class Worker extends CommandExecutor {
 	private int cpu;
 	private int memory;
 
-	public Worker(Socket monitor) throws IOException {
+	public Worker(Socket monitor, WorkerManager manager) throws IOException {
+		this.manager = manager;
 		this.handler = new SocketHandler(monitor);
 		this.ip = monitor.getInetAddress().getHostName();
 	}
@@ -38,6 +41,7 @@ public class Worker extends CommandExecutor {
 	public void register(Map<String, String> params) {
 		this.name = params.get("name");
 		this.port = Integer.parseInt(params.get("port"));
+		manager.addWorker(this);
 		Command cmd = new Command("startTomcat");
 		try {
 			handler.send(cmd);
@@ -58,13 +62,11 @@ public class Worker extends CommandExecutor {
 		try {
 			socket = new Socket(ip, port);
 			IOUtils.write(socket.getOutputStream(), false, request);
-			response = IOUtils.read(socket.getInputStream(), false);
+			response = IOUtils.read(socket.getInputStream());
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			System.out.println("worker ip地址或端口有误");
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("读写数据出错");
+			logger.error("Worker's ip or port is wrong", e);
+		} catch (Exception e) {
+			logger.error("Failed to read or write data", e);
 		} finally {
 			try {
 				socket.close();

@@ -16,6 +16,7 @@ public class LoadBalancer {
 
 	private ServerSocket server;
 	private WorkerManager manager;
+	private String policy;
 
 	public void start() {
 		try {
@@ -49,6 +50,11 @@ public class LoadBalancer {
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read configuration file", e);
 		}
+		
+		//读取负载均衡策略
+		this.policy = props.getProperty("worker.policy");
+		
+		
 		// 读取并启动 WorkerMonitor 监听端口
 		int managerPort;
 		try {
@@ -57,7 +63,7 @@ public class LoadBalancer {
 			throw new RuntimeException("Wrong number format of [manager.port]", e);
 		}
 		try {
-			manager = new WorkerManager(managerPort);
+			manager = new WorkerManager(managerPort, policy);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to start WorkerManager", e);
 		}
@@ -83,6 +89,7 @@ public class LoadBalancer {
 			Socket client = null;
 			try {
 				client = server.accept();
+				logger.info("Receive a connection from [" + client + "]");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

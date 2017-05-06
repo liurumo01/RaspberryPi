@@ -31,7 +31,7 @@ public class IOUtils {
 		}
 	}
 
-	public static HttpPacket read(InputStream in, boolean print) throws NumberFormatException, IOException {
+	public static HttpPacket read(InputStream in) throws NumberFormatException, IOException {
 		if(in == null) {
 			return null;
 		}
@@ -40,12 +40,10 @@ public class IOUtils {
 		readHttpHead(in, pack);
 		readHttpBody(in, pack);
 		
-//		if (print) {
-//			System.out.println("Readed:");
-//			System.out.println(pack.getTitle());
-//			System.out.println(pack.getHeaderString());
-//		}
-
+		logger.trace("Readed:");
+		logger.trace(pack.getTitle());
+		logger.trace(pack.getHeaderString());
+		
 		return pack;
 	}
 
@@ -57,15 +55,12 @@ public class IOUtils {
 		out.write(pack.getTitle().getBytes());
 		out.write("\r\n".getBytes());
 		out.write(pack.getHeaderString().getBytes());
-		// out.write("\r\n".getBytes());
 		out.write(pack.getData());
-		// out.write("\r\n".getBytes());
 		
-//		if (print) {
-//			System.out.println("Written:");
-//			System.out.println(pack.getTitle());
-//			System.out.println(pack.getHeaderString());
-//		}
+		logger.trace("Written:");
+		logger.trace(pack.getTitle());
+		logger.trace(pack.getHeaderString());
+
 	}
 
 	/**
@@ -106,6 +101,7 @@ public class IOUtils {
 			int chunkSize = -1;
 			while (chunkSize != 0) {
 				line = readLine(in, 0);
+				baos.write(line.getBytes());
 				chunkSize = Integer.parseInt(line.trim(), 16);
 				if (chunkSize == 0) {
 					break;
@@ -113,9 +109,9 @@ public class IOUtils {
 				byte[] buf = new byte[chunkSize];
 				in.read(buf);
 				baos.write(buf);
-				readLine(in, 0);
-				readLine(in, 0);
-				baos.write("\r\n\r\n".getBytes());
+				line = readLine(in, 0);
+				baos.write(line.getBytes());
+//				line = readLine(in, 0);
 			}
 		} else {
 			int remain = pack.contenLength();

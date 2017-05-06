@@ -29,7 +29,7 @@ public class TomcatConsoleReader implements Runnable {
 				line = reader.readLine();
 				if(line == null || line.equals("Killed")) {
 					break;
-				} else if(line.contains("server start up in")) {
+				} else if(line.contains("Server startup in")) {
 					monitor.setTomcatStatus(TomcatStatus.RUNNING);
 				}
 				logger.trace(line);

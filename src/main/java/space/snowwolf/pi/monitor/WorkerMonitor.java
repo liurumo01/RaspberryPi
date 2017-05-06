@@ -34,15 +34,14 @@ public class WorkerMonitor extends CommandExecutor {
 	@CommandExecution
 	public void startTomcat(Map<String, String> params) throws IOException {
 		String osName = System.getProperty("os.name").toLowerCase();
-		String[] startParam = null;
 		if(osName.contains("win")) {
-			startParam = new String[] { "cmd.exe", "-c", "cd " + CATALINA_HOME + "/bin;catalina run" };
+			tomcat = Runtime.getRuntime().exec(CATALINA_HOME + "\\bin\\catalina.bat run");
 		} else if(osName.contains("linux")) {
-			startParam = new String[] { "/bin/sh", "-c", "cd " + CATALINA_HOME + "/bin;./catalina.sh run" };
+			String[] startParam = { "/bin/sh", "-c", "cd " + CATALINA_HOME + "/bin;./catalina.sh run" };
+			tomcat = Runtime.getRuntime().exec(startParam);
 		}
 		
-		if(startParam != null) {
-			tomcat = Runtime.getRuntime().exec(startParam);
+		if(tomcat != null) {
 			status = TomcatStatus.STARTING;
 			Main.getThreadPool().submit(new TomcatConsoleReader(this));
 		}
