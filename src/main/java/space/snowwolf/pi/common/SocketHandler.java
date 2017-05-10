@@ -42,9 +42,12 @@ public class SocketHandler {
 		queue = new Vector<>();
 		Main.getThreadPool().submit(() -> {
 			while(socket != null && !socket.isClosed() && socket.isConnected()) {
-				logger.debug((socket == null) + " " + socket.isClosed() + " " + socket.isConnected());
 				try {
-					queue.add(read());
+					Command cmd = read();
+					if(cmd == null) {
+						break;
+					}
+					queue.add(cmd);
 				} catch (IOException e) {
 					logger.error("Failed to read command", e);
 				}
@@ -53,19 +56,24 @@ public class SocketHandler {
 	}
 	
 	private Command read() throws IOException {
-		String name = reader.readLine();
-		Command cmd = new Command(name);
-		String line;
-		while((line = reader.readLine()) != null && !line.equals("")) {
-			int index = line.indexOf("=");
-			if(index < 0) {
-				continue;
+		Command cmd = null;
+		try {
+			String name = reader.readLine();
+			cmd = new Command(name);
+			String line;
+			while((line = reader.readLine()) != null && !line.equals("")) {
+				int index = line.indexOf("=");
+				if(index < 0) {
+					continue;
+				}
+				String key = line.substring(0, index).trim();
+				String value = line.substring(index + 1).trim();
+				cmd.addParameter(key, value);
 			}
-			String key = line.substring(0, index).trim();
-			String value = line.substring(index + 1).trim();
-			cmd.addParameter(key, value);
+			logger.info("Read command [" + cmd + "]");
+		} catch (Exception e) {
+			logger.error("Failed to read command", e);
 		}
-		logger.info("Read command [" + cmd + "]");
 		return cmd;
 	}
 	

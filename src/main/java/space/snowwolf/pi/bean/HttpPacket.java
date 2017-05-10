@@ -13,7 +13,6 @@ public class HttpPacket {
 
 	private String title;
 	private Map<String, String> header;
-	private String headerString;
 	
 	private byte[] data;
 	
@@ -43,11 +42,11 @@ public class HttpPacket {
 	}
 
 	public String getHeaderString() {
-		return headerString;
-	}
-
-	public void setHeaderString(String headerString) {
-		this.headerString = headerString;
+		StringBuilder b = new StringBuilder();
+		header.entrySet().stream().forEach((e) -> {
+			b.append(e.getKey()).append(": ").append(e.getValue()).append("\r\n");
+		});
+		return b.toString();
 	}
 
 	public byte[] getData() {

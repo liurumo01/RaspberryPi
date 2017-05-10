@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import space.snowwolf.pi.bean.HttpPacket;
 import space.snowwolf.pi.utils.IOUtils;
 
-public class Handler extends Thread {
+public class Handler implements Runnable {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Handler.class);
 
@@ -34,6 +34,9 @@ public class Handler extends Thread {
 			} else {
 				logger.info("Distribute worker [" + worker.getName() + "] to handle request [" + request.hashCode() + "]");
 				response = worker.handle(request);
+				if(response.isChunked()) {
+					response.getHeader().remove("Transfer-Encoding");
+				}
 			}
 			try {
 				IOUtils.write(client.getOutputStream(), true, response);

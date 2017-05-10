@@ -21,6 +21,8 @@ public class WorkerManager {
 	private Worker main;
 	
 	private int current;
+	private int maxCpu;
+	private int maxMemory;
 	
 	private ServerSocket manager;
 	
@@ -44,6 +46,8 @@ public class WorkerManager {
 				logger.error("Failed to listen worker monitor connection", e);
 			}
 		});
+		maxCpu = 80;
+		maxMemory = 80;
 	}
 
 	public Worker distribute() {
@@ -53,12 +57,18 @@ public class WorkerManager {
 		Worker result = null;
 		if(policy.equals("average")) {
 			filterUnavaliable();
+			if(current == -1) {
+				return null;
+			}
 			result = workers.get(current);
 			current = (current + 1) % workers.size();
 		} else if(policy.equals("main")) {
 			if(main == null) {
 				current = 0;
 				filterUnavaliable();
+				if(current == -1) {
+					return null;
+				}
 				main = workers.get(current);
 			}
 			result = main;
@@ -74,9 +84,36 @@ public class WorkerManager {
 		if(current == -1) {
 			current = 0;
 		}
-		while(workers.get(current).getStatus() != TomcatStatus.RUNNING) {
-			current = (current + 1) % workers.size();
-		}
+		boolean flag = false;
+		int count = 0;
+		do {
+			Worker p = workers.get(current);
+			if(p.getStatus() != TomcatStatus.RUNNING) {
+				flag = true;
+			} else if(p.getCpu() >= maxCpu) {
+				flag = true;
+			} else if(p.getMemory() >= maxMemory) {
+				flag = true;
+			} else {
+				flag = false;
+			}
+			if(flag) {
+				current = (current + 1) % workers.size();
+				count++;
+				if(count == workers.size()) {
+					current = -1;
+					break;
+				}
+			}
+		} while(flag);
+	}
+	
+	public void setMaxCpu(int maxCpu) {
+		this.maxCpu = maxCpu;
+	}
+	
+	public void setMaxMemory(int maxMemory) {
+		this.maxMemory = maxMemory;
 	}
 	
 }

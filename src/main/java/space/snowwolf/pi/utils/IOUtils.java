@@ -55,7 +55,9 @@ public class IOUtils {
 		out.write(pack.getTitle().getBytes());
 		out.write("\r\n".getBytes());
 		out.write(pack.getHeaderString().getBytes());
+		out.write("\r\n".getBytes());
 		out.write(pack.getData());
+		out.write("\r\n".getBytes());
 		
 		logger.trace("Written:");
 		logger.trace(pack.getTitle());
@@ -74,7 +76,6 @@ public class IOUtils {
 	 * @throws IOException
 	 */
 	private static void readHttpHead(InputStream in, HttpPacket pack) throws NumberFormatException, IOException {
-		StringBuilder builder = new StringBuilder();
 		Map<String, String> header = new HashMap<String, String>();
 		String line = null;
 
@@ -84,12 +85,9 @@ public class IOUtils {
 		while (!(line = readLine(in, 0)).equals("\r\n")) {
 			String[] split = line.split(":");
 			header.put(split[0].trim(), split[1].replaceAll("\r\n", "").trim());
-			builder.append(line);
 		}
 		pack.setHeader(header);
 		// \r\n
-		builder.append("\r\n");
-		pack.setHeaderString(builder.toString());
 	}
 
 	private static void readHttpBody(InputStream in, HttpPacket pack) throws IOException {
@@ -101,7 +99,6 @@ public class IOUtils {
 			int chunkSize = -1;
 			while (chunkSize != 0) {
 				line = readLine(in, 0);
-				baos.write(line.getBytes());
 				chunkSize = Integer.parseInt(line.trim(), 16);
 				if (chunkSize == 0) {
 					break;
@@ -111,7 +108,6 @@ public class IOUtils {
 				baos.write(buf);
 				line = readLine(in, 0);
 				baos.write(line.getBytes());
-//				line = readLine(in, 0);
 			}
 		} else {
 			int remain = pack.contenLength();
